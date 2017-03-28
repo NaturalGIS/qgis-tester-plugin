@@ -78,8 +78,7 @@ class TestTests(unittest.TestCase):
         self.assertEqual(len(t.steps), 0)
         self.assertEqual(t.name, name)
         self.assertEqual(t.group, '')
-        self.assertIn('<function <lambda> at ', str(t.cleanup))
-        self.assertIsNone(t.cleanup())
+        self.assertEqual(len(t.cleanupSteps), 0)
         self.assertIsNone(t.issueUrl)
 
     def testAddStep(self):
@@ -111,7 +110,24 @@ class TestTests(unittest.TestCase):
         t = Test(name)
         # do test
         t.setCleanup(testFunction1)
-        self.assertEqual(t.cleanup, testFunction1)
+        self.assertEqual(len(t.cleanupSteps), 1)
+        self.assertEqual(t.cleanupSteps[0], testFunction1)
+
+    def testAddCleanupStep(self):
+        """test the cleanup function is set."""
+        def testFunction1():
+            pass
+        def testFunction2():
+            pass
+        name = "this is the test name"
+        t = Test(name)
+        # do test
+        t.addCleanupStep(testFunction1)
+        self.assertEqual(len(t.cleanupSteps), 1)
+        self.assertEqual(t.cleanupSteps[0], testFunction1)
+        t.addCleanupStep(testFunction2)
+        self.assertEqual(len(t.cleanupSteps), 2)
+        self.assertEqual(t.cleanupSteps[1], testFunction2)
 
     def testSetIssueUrl(self):
         """test the issue url is set."""

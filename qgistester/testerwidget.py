@@ -168,7 +168,8 @@ class TesterWidget(BASE, WIDGET):
         else:
             try:
                 test = self.tests[self.currentTest]
-                test.cleanup()
+                for cleanupFunc in test.cleanupSteps:
+                    cleanupFunc()
                 self.currentTestResult.passed()
             except:
                 self.currentTestResult.failed("Test cleanup", traceback.format_exc())
@@ -185,7 +186,8 @@ class TesterWidget(BASE, WIDGET):
             desc = test.steps[self.currentTestStep].description
         self.currentTestResult.failed(desc, msg)
         try:
-            test.cleanup()
+            for cleanupFunc in test.cleanupSteps:
+                cleanupFunc()
         except:
             pass
         self.currentTest +=1

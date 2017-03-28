@@ -8,6 +8,7 @@ from builtins import object
 from unittest.suite import TestSuite
 from unittest.result import TestResult
 from unittest.runner import TextTestRunner
+from utils import deprecated
 import traceback
 
 class Step(object):
@@ -26,7 +27,7 @@ class Test(object):
         self.steps = []
         self.name = name
         self.group = ""
-        self.cleanup = lambda: None
+        self.cleanupSteps = []
         self.issueUrl = None
         self.settings = {}
 
@@ -37,8 +38,14 @@ class Test(object):
                 isVerifyStep=False):
         self.steps.append(Step(description, function, prestep, isVerifyStep))
 
+    @deprecated
     def setCleanup(self, function):
-        self.cleanup = function
+        """Add cleanup function. BUT better use addCleanupStep
+        """
+        self.addCleanupStep(function)
+
+    def addCleanupStep(self, function):
+        self.cleanupSteps.append(function)
 
     def setIssueUrl(self, url):
         self.issueUrl = url
