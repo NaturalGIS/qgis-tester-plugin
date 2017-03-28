@@ -52,17 +52,20 @@ class TestSelectorTests(unittest.TestCase):
         with mock.patch('qgistester.tests.tests', self.tests):
             ts = TestSelector()
             self.assertTrue(ts.testsTree.topLevelItemCount() == 1)
-            self.assertTrue(ts.testsTree.topLevelItem(0).childCount() == 3)
+            self.assertTrue(ts.testsTree.topLevelItem(0).childCount() == 2)
             self.assertTrue(ts.testsTree.topLevelItem(0).child(0).text(0) ==
-                            'Functional test')
+                            'Manual and semi-automated tests')
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(0).childCount() == 1)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(0).child(0).text(0) == "Functional test")
             self.assertTrue(ts.testsTree.topLevelItem(0).child(1).text(0) ==
-                            'Test that fails')
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(2).text(0) ==
-                            'Test that passes')
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(0).checkState(0) == Qt.Checked)
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).checkState(0) == Qt.Checked)
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(2).checkState(0) == Qt.Checked)
-            self.assertFalse(ts.testsTree.topLevelItem(0).isExpanded())
+                            'Fully automated tests')
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).childCount() == 2)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).child(0).text(0) == "Test that fails")
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).child(1).text(0) == "Test that passes")
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(0).child(0).checkState(0) == Qt.Unchecked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).child(0).checkState(0) == Qt.Unchecked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).child(0).checkState(0) == Qt.Unchecked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).isExpanded())
             if isPyQt4:
                 self.assertTrue(ts.selectAllLabel.receivers(SIGNAL('linkActivated(const QString &)')) == 1)
                 self.assertTrue(ts.unselectAllLabel.receivers(SIGNAL('linkActivated(const QString &)')) == 1)
@@ -81,15 +84,15 @@ class TestSelectorTests(unittest.TestCase):
             ts = TestSelector()
             # test 1: state = False (better first False because default all
             # items are checked)
-            ts.checkTests(False)
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(0).checkState(0) == Qt.Unchecked)
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).checkState(0) == Qt.Unchecked)
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(2).checkState(0) == Qt.Unchecked)
+            ts.checkTests(lambda t: Qt.Unchecked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(0).child(0).checkState(0) == Qt.Unchecked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).child(0).checkState(0) == Qt.Unchecked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).child(1).checkState(0) == Qt.Unchecked)
             # test 2: state = True
-            ts.checkTests(True)
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(0).checkState(0) == Qt.Checked)
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).checkState(0) == Qt.Checked)
-            self.assertTrue(ts.testsTree.topLevelItem(0).child(2).checkState(0) == Qt.Checked)
+            ts.checkTests(lambda t: Qt.Checked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(0).child(0).checkState(0) == Qt.Checked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).child(0).checkState(0) == Qt.Checked)
+            self.assertTrue(ts.testsTree.topLevelItem(0).child(1).child(1).checkState(0) == Qt.Checked)
 
 
     def testCancelPressed(self):
@@ -109,6 +112,10 @@ class TestSelectorTests(unittest.TestCase):
             ts = TestSelector()
             ts.show()  # dlg.resultsTree is a QTreeWidget
             self.assertTrue(ts.isVisible())
+            # select all tests
+            ts.testsTree.topLevelItem(0).child(0).child(0).setCheckState(0, Qt.Checked)
+            ts.testsTree.topLevelItem(0).child(1).child(0).setCheckState(0, Qt.Checked)
+            ts.testsTree.topLevelItem(0).child(1).child(1).setCheckState(0, Qt.Checked)
             ts.okPressed()
             self.assertEqual(ts.tests[0], self.tests[0])
             self.assertEqual(ts.tests[1], self.tests[1])
@@ -118,7 +125,9 @@ class TestSelectorTests(unittest.TestCase):
             ts = TestSelector()
             ts.show()  # dlg.resultsTree is a QTreeWidget
             self.assertTrue(ts.isVisible())
-            ts.testsTree.topLevelItem(0).child(1).setCheckState(0, False)
+            ts.testsTree.topLevelItem(0).child(0).child(0).setCheckState(0, Qt.Checked)
+            ts.testsTree.topLevelItem(0).child(1).child(0).setCheckState(0, Qt.Unchecked)
+            ts.testsTree.topLevelItem(0).child(1).child(1).setCheckState(0, Qt.Checked)
             ts.okPressed()
             self.assertEqual(ts.tests[0], self.tests[0])
             self.assertEqual(ts.tests[1], self.tests[2])
@@ -127,9 +136,9 @@ class TestSelectorTests(unittest.TestCase):
             ts = TestSelector()
             ts.show()  # dlg.resultsTree is a QTreeWidget
             self.assertTrue(ts.isVisible())
-            ts.testsTree.topLevelItem(0).child(0).setCheckState(0, False)
-            ts.testsTree.topLevelItem(0).child(1).setCheckState(0, False)
-            ts.testsTree.topLevelItem(0).child(2).setCheckState(0, False)
+            ts.testsTree.topLevelItem(0).child(0).child(0).setCheckState(0, Qt.Unchecked)
+            ts.testsTree.topLevelItem(0).child(1).child(0).setCheckState(0, Qt.Unchecked)
+            ts.testsTree.topLevelItem(0).child(1).child(1).setCheckState(0, Qt.Unchecked)
             ts.okPressed()
             self.assertEqual(len(ts.tests), 0)
             self.assertFalse(ts.isVisible())
